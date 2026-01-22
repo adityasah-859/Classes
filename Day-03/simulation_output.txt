@@ -1,0 +1,14 @@
+--------------------------------------------------
+Execution Time: 2026-01-22 12:44:05.164634
+--------------------------------------------------
+Maximum value of investment: 6289.698024680655
+Minimum value of investment: 1485.3909582908823
+Average value of investment: 2809.7313003154327
+
+--------------------------------------------------
+Execution Time: 2026-01-22 12:44:08.841495
+--------------------------------------------------
+Maximum value of investment: 7044.980683309731
+Minimum value of investment: 1527.4130288342112
+Average value of investment: 2806.8945219446114
+

@@ -1,0 +1,12 @@
+Calling function: greet_people
+Completed function: greet_people
+Calling function: show_profile
+Completed function: show_profile
+Calling function: order_summary
+Completed function: order_summary
+Calling function: multiply
+Completed function: multiply
+Calling function: greet_people
+Completed function: greet_people
+Calling function: show_profile
+Completed function: show_profile
