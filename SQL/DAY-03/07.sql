@@ -137,20 +137,20 @@ SELECT * FROM order_items;
 
 -- daily revenue table by calculating the total order value per day for all completed and closed orders
 SELECT 
-	DATE_FORMAT(o.order_date,'%d-%m-%y') AS date_,
+	DATE(o.order_date) AS date_,
     ROUND(SUM(oi.order_item_subtotal),2) AS daily_revenue
     FROM orders o
     JOIN
     order_items oi
     ON o.order_id = oi.order_item_order_id
     WHERE o.order_status IN('COMPLETE','CLOSED')
-    GROUP BY o.order_date
-    ORDER BY o.order_date;
+    GROUP BY DATE(o.order_date)
+    ORDER BY DATE(o.order_date);
     
     
 -- Create a table by calculating revenue per product per day
 SELECT 
-	DATE_FORMAT(o.order_date,'%d-%m-%y') AS date_,
+	DATE(o.order_date) AS date_,
 	oi.order_item_product_id,
 	ROUND(SUM(oi.order_item_subtotal),2) AS revenuePerDay
     FROM order_items oi
@@ -158,8 +158,8 @@ SELECT
     orders o
     ON o.order_id = oi.order_item_order_id
     WHERE o.order_status IN('COMPLETE','CLOSED')
-    GROUP BY oi.order_item_product_id,o.order_date
-    ORDER BY o.order_date;
+    GROUP BY oi.order_item_product_id,DATE(o.order_date)
+    ORDER BY DATE(o.order_date);
     
 
 -- monthly revenue while retaining daily rows
@@ -175,15 +175,12 @@ SELECT
     GROUP BY o.order_date
     ORDER BY o.order_date;
 
-SELECT date_ FROM revenue_per_day;
-SELECT * FROM revenue_per_day
-ORDER BY date_;
 
 SELECT 
 	date_,daily_revenue,
 	SUM(daily_revenue) OVER (
     PARTITION BY DATE_FORMAT(date_,'%y-%m')
-    ORDER BY date_) AS monthly_revenue
+    ) AS monthly_revenue
 FROM revenue_per_day
 ORDER BY date_;
     
@@ -198,7 +195,7 @@ SELECT
 FROM order_items oi
 LEFT JOIN orders o
 ON oi.order_item_order_id = o.order_id  
-WHERE DATE_FORMAT(o.order_date,'%y-%m-%d') = DATE("2014-01-01") AND o.order_status IN('COMPLETE','CLOSED')
+WHERE DATE(o.order_date) = "2014-01-01" AND o.order_status IN('COMPLETE','CLOSED')
 GROUP BY oi.order_item_product_id;
 
 

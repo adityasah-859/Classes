@@ -1,7 +1,6 @@
 
 -- 01 — Build Bronze Layer 
 
-DROP DATABASE IF EXISTS bronze;
 CREATE DATABASE bronze DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE bronze;
 
@@ -20,7 +19,7 @@ LOAD DATA LOCAL INFILE '/Users/as-mac-1346/Desktop/Classes/SQL/Datasets/cust_inf
 FIELDS TERMINATED BY ',' IGNORE 1 LINES;
 SELECT COUNT(*) AS rows_loaded_cust FROM crm_cust_info;
 
-SELECT * FROM crm_cust_info LIMIT 10;
+SELECT * FROM crm_cust_info ;
 
 -- crm_prd_info
 CREATE TABLE IF NOT EXISTS crm_prd_info (
@@ -37,7 +36,7 @@ LOAD DATA LOCAL INFILE '/Users/as-mac-1346/Desktop/Classes/SQL/Datasets/prd_info
 FIELDS TERMINATED BY ',' IGNORE 1 LINES;
 SELECT COUNT(*) AS rows_loaded_prd FROM crm_prd_info;
 
-SELECT * FROM crm_prd_info LIMIT 10;
+SELECT * FROM crm_prd_info;
 
 -- crm_sales_details
 CREATE TABLE IF NOT EXISTS crm_sales_details (
@@ -56,7 +55,7 @@ LOAD DATA LOCAL INFILE '/Users/as-mac-1346/Desktop/Classes/SQL/Datasets/sales_de
 FIELDS TERMINATED BY ',' IGNORE 1 LINES;
 SELECT COUNT(*) AS rows_loaded_sales FROM crm_sales_details;
 
-SELECT * FROM crm_sales_details LIMIT 10;
+SELECT * FROM crm_sales_details ;
 
 -- erp_loc_a101
 CREATE TABLE IF NOT EXISTS erp_loc_a101 (
@@ -68,7 +67,7 @@ LOAD DATA LOCAL INFILE '/Users/as-mac-1346/Desktop/Classes/SQL/Datasets/LOC_A101
 FIELDS TERMINATED BY ',' IGNORE 1 LINES;
 SELECT COUNT(*) AS rows_loaded_loc FROM erp_loc_a101;
 
-SELECT * FROM erp_loc_a101 LIMIT 10;
+SELECT * FROM erp_loc_a101 ;
 
 -- erp_cust_az12
 CREATE TABLE IF NOT EXISTS erp_cust_az12 (
@@ -81,7 +80,7 @@ LOAD DATA LOCAL INFILE '/Users/as-mac-1346/Desktop/Classes/SQL/Datasets/CUST_AZ1
 FIELDS TERMINATED BY ',' IGNORE 1 LINES;
 SELECT COUNT(*) AS rows_loaded_az12 FROM erp_cust_az12;
 
-SELECT * FROM erp_cust_az12 LIMIT 10;
+SELECT * FROM erp_cust_az12;
 
 -- erp_px_cat_g1v2
 CREATE TABLE IF NOT EXISTS erp_px_cat_g1v2 (
@@ -95,4 +94,14 @@ LOAD DATA LOCAL INFILE '/Users/as-mac-1346/Desktop/Classes/SQL/Datasets/PX_CAT_G
 FIELDS TERMINATED BY ',' IGNORE 1 LINES;
 SELECT COUNT(*) AS rows_loaded_cat FROM erp_px_cat_g1v2;
 
-SELECT * FROM erp_px_cat_g1v2 LIMIT 10;
+SELECT * FROM erp_px_cat_g1v2 ;
+
+
+
+
+
+SELECT cr.cst_key,er.cid,er.gen
+FROM erp_cust_az12 er
+JOIN crm_cust_info cr
+ON cr.cst_id = SUBSTR(er.cid,4)
+WHERE cr.cst_gndr = '' ;
