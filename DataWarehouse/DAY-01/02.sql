@@ -30,17 +30,17 @@ INSERT INTO silver.crm_cust_info (
 SELECT 
     cst_id,
     cst_key,
-    TRIM(cst_firstname),
-    TRIM(cst_lastname),
+    TRIM(cst_firstname), -- CONSISTENCY
+    TRIM(cst_lastname), -- CONSISTENCY
     CASE 
-        WHEN UPPER(TRIM(cst_marital_status)) = 'S' THEN 'Single'
-        WHEN UPPER(TRIM(cst_marital_status)) = 'M' THEN 'Married'
-        ELSE 'n/a'
+        WHEN UPPER(TRIM(cst_marital_status)) = 'S' THEN 'Single' -- CONSISTENCY
+        WHEN UPPER(TRIM(cst_marital_status)) = 'M' THEN 'Married' -- CONSISTENCY
+        ELSE 'n/a' -- COMPLETENESS
     END,
     CASE 
-        WHEN UPPER(TRIM(cst_gndr)) = 'F' THEN 'Female'
-        WHEN UPPER(TRIM(cst_gndr)) = 'M' THEN 'Male'
-        ELSE 'n/a'
+        WHEN UPPER(TRIM(cst_gndr)) = 'F' THEN 'Female' -- CONSISTENCY
+        WHEN UPPER(TRIM(cst_gndr)) = 'M' THEN 'Male' -- CONSISTENCY
+        ELSE 'n/a' -- COMPLETENESS
     END,
     cst_create_date
 FROM (
@@ -49,7 +49,8 @@ FROM (
    FROM bronze.crm_cust_info
    WHERE cst_id IS NOT NULL
 ) t
-WHERE rn = 1;
+WHERE rn = 1;  -- UNIQUENESS
+-- 
 
 SELECT COUNT(*) AS rows_loaded_cust FROM silver.crm_cust_info;
 
@@ -81,24 +82,24 @@ INSERT INTO silver.crm_prd_info (
 )
 SELECT
   prd_id,
-  REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_') AS cat_id,
-  SUBSTRING(prd_key, 7) AS prd_key,
+  REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_') AS cat_id, -- VALIDITY
+  SUBSTRING(prd_key, 7) AS prd_key,-- CONSISTENCY
   prd_nm,
   COALESCE(prd_cost, 0),
-  CASE UPPER(TRIM(prd_line))
+  CASE UPPER(TRIM(prd_line)) -- CONSISTENCY
     WHEN 'M' THEN 'Mountain'
     WHEN 'R' THEN 'Road'
     WHEN 'S' THEN 'Other Sales'
     WHEN 'T' THEN 'Touring'
-    ELSE 'n/a'
+    ELSE 'n/a' -- COMPLETENESS
   END,
-  CAST(prd_start_dt AS DATE),
+  CAST(prd_start_dt AS DATE), -- CONSISTENCY
   -- Calculate End Date by looking at the Next Start Date for the same product
   CAST(
      DATE_SUB(
         LEAD(prd_start_dt) OVER (PARTITION BY SUBSTRING(prd_key, 7) ORDER BY prd_start_dt), 
         INTERVAL 1 DAY
-     ) AS DATE
+     ) AS DATE -- CONSISTENCY
   )
 FROM bronze.crm_prd_info;
 
@@ -139,22 +140,22 @@ SELECT
   sls_prd_key,
   sls_cust_id,
   -- Fix Date Parsing: Handle 0 or invalid lengths,then cast to CHAR before parsing
-  CASE WHEN sls_order_dt = 0 OR LENGTH(CAST(sls_order_dt AS CHAR)) != 8 THEN NULL
+  CASE WHEN sls_order_dt = 0 OR LENGTH(CAST(sls_order_dt AS CHAR)) != 8 THEN NULL  -- VALIDITY
        ELSE STR_TO_DATE(CAST(sls_order_dt AS CHAR), '%Y%m%d') END,
-  CASE WHEN sls_ship_dt = 0 OR LENGTH(CAST(sls_ship_dt AS CHAR)) != 8 THEN NULL
+  CASE WHEN sls_ship_dt = 0 OR LENGTH(CAST(sls_ship_dt AS CHAR)) != 8 THEN NULL -- VALIDITY
        ELSE STR_TO_DATE(CAST(sls_ship_dt AS CHAR), '%Y%m%d') END,
-  CASE WHEN sls_due_dt = 0 OR LENGTH(CAST(sls_due_dt AS CHAR)) != 8 THEN NULL
+  CASE WHEN sls_due_dt = 0 OR LENGTH(CAST(sls_due_dt AS CHAR)) != 8 THEN NULL -- VALIDITY
        ELSE STR_TO_DATE(CAST(sls_due_dt AS CHAR), '%Y%m%d') END,
   -- Fix Sales Calculation: Recalculate if NULL, Zero, or doesn't match Qty*Price
   CASE 
     WHEN sls_sales IS NULL OR sls_sales <= 0 OR sls_sales != sls_quantity * ABS(sls_price)
-      THEN sls_quantity * ABS(sls_price)
-    ELSE sls_sales
-  END,
+      THEN sls_quantity * ABS(sls_price)  -- COMPLETENESS and ACCURACY
+    ELSE sls_sales 
+  END, 
   sls_quantity,
   -- Fix Price: Backfill if NULL
   CASE 
-    WHEN sls_price IS NULL OR sls_price <= 0 
+    WHEN sls_price IS NULL OR sls_price <= 0   -- COMPLETENESS and ACCURACY
       THEN NULLIF(sls_sales,0) / NULLIF(sls_quantity,0)
     ELSE sls_price
   END
@@ -183,12 +184,12 @@ TRUNCATE TABLE silver.erp_cust_az12;
 INSERT INTO silver.erp_cust_az12 (cid, bdate, gen)
 SELECT
   -- Correction: Changed 'NAS%%' to 'NAS%'
-  CASE WHEN cid LIKE 'NAS%' THEN SUBSTRING(cid, 4) ELSE cid END, 
-  CASE WHEN bdate > CURRENT_DATE THEN NULL ELSE bdate END,
+  CASE WHEN cid LIKE 'NAS%' THEN SUBSTRING(cid, 4) ELSE cid END, -- CONSISTENCY
+  CASE WHEN bdate > CURRENT_DATE THEN NULL ELSE bdate END, -- VALIDITY
   CASE
-     WHEN UPPER(TRIM(gen)) IN ('F','FEMALE') THEN 'Female'
-     WHEN UPPER(TRIM(gen)) IN ('M','MALE')   THEN 'Male'
-     ELSE 'n/a'
+     WHEN UPPER(TRIM(gen)) IN ('F','FEMALE') THEN 'Female' -- CONSISTENCY
+     WHEN UPPER(TRIM(gen)) IN ('M','MALE')   THEN 'Male' -- CONSISTENCY
+     ELSE 'n/a' -- COMPLETENESS
   END
 FROM bronze.erp_cust_az12;
 
@@ -214,9 +215,9 @@ INSERT INTO silver.erp_loc_a101 (cid, cntry)
 SELECT
   REPLACE(cid, '-', ''),
   CASE
-     WHEN TRIM(cntry) = 'DE' THEN 'Germany'
-     WHEN TRIM(cntry) IN ('US','USA') THEN 'United States'
-     WHEN TRIM(cntry) = '' OR cntry IS NULL THEN 'n/a'
+     WHEN TRIM(cntry) = 'DE' THEN 'Germany' -- VALIDITY
+     WHEN TRIM(cntry) IN ('US','USA') THEN 'United States' -- VALIDITY
+     WHEN TRIM(cntry) = '' OR cntry IS NULL THEN 'n/a' -- VALIDITY
      ELSE TRIM(cntry)
   END
 FROM bronze.erp_loc_a101;
@@ -248,7 +249,3 @@ FROM bronze.erp_px_cat_g1v2;
 SELECT COUNT(*) AS rows_loaded_cat FROM silver.erp_px_cat_g1v2;
 
 SELECT * FROM erp_px_cat_g1v2;
-
-
-
-

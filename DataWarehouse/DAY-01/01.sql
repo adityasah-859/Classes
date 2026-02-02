@@ -4,6 +4,15 @@
 CREATE DATABASE bronze DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE bronze;
 
+SELECT * FROM silver.erp_loc_a101
+WHERE cntry = 'n/a';
+
+SELECT COUNT(*) FROM silver.erp_loc_a101;
+SELECT * FROM silver.erp_loc_a101
+WHERE cid = 'AW00029330';
+
+
+
 -- crm_cust_info
 CREATE TABLE IF NOT EXISTS crm_cust_info (
   cst_id INT,
