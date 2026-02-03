@@ -52,7 +52,7 @@ FROM (
 WHERE rn = 1;  -- UNIQUENESS
 -- 
 
-SELECT COUNT(*) AS rows_loaded_cust FROM silver.crm_cust_info;
+SELECT * FROM silver.crm_cust_info;
 
 SELECT * FROM crm_cust_info;
 
