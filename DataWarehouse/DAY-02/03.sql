@@ -85,6 +85,7 @@ ORDER BY DATEDIFF(NOW(),birthdate) DESC
 LIMIT 1;
 
 
+
 -- YOUNGEST
 
 SELECT 
@@ -99,14 +100,15 @@ LIMIT 1;
 
 -- Compute revenue by category
 
-SELECT dp.category_id, dp.category, SUM(fs.sales_amount) AS revenue
+SELECT dp.category, SUM(fs.sales_amount) AS revenue
 FROM dim_products dp
-LEFT JOIN
+ JOIN
 fact_sales fs
 ON dp.product_key = fs.product_key
-WHERE fs.sales_amount IS NOT NULl
-GROUP BY dp.category;
+GROUP BY dp.category
+ORDER BY revenue DESC;
 
+     
 -- Compute units sold by country
 
 SELECT c.country,SUM(s.quantity) AS units_sold
@@ -115,23 +117,27 @@ LEFT JOIN
 fact_sales s
 ON c.customer_key = s.customer_key
 WHERE s.quantity IS NOT NULL AND c.country != 'n/a'
-GROUP BY c.country;
+GROUP BY c.country
+ORDER BY units_sold DESC;
 
 
 -- 3 customers with the fewest orders
 
-SELECT 
-	c.customer_id,
-	c.customer_key,
-    c.first_name,
-    c.last_name,
-    COUNT(s.customer_key) AS num_orders
-FROM fact_sales s
-JOIN dim_customers c
-ON c.customer_key = s.customer_key
-GROUP BY s.customer_key
-HAVING num_orders >=1
-ORDER BY num_orders 
+
+SELECT
+  dc.customer_key,
+  dc.customer_id,
+  dc.customer_number,
+  dc.first_name,
+  dc.last_name,
+  COUNT(DISTINCT fs.order_number) AS order_count
+FROM gold.fact_sales fs
+JOIN gold.dim_customers dc
+  ON fs.customer_key = dc.customer_key
+GROUP BY
+  dc.customer_key, dc.customer_id, dc.customer_number, dc.first_name, dc.last_name
+HAVING COUNT(DISTINCT fs.customer_key) >=1
+ORDER BY order_count  ASC, dc.customer_key
 LIMIT 3;
 
 
